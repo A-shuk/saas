@@ -1,4 +1,8 @@
+'use client' //rendered on the client side
 import Link from "next/link"
+import {usePathname} from "next/navigation"
+import path from "path"
+import {cn} from "@/lib/utils"
 // store the navigation items in an array
 const navItems = [
     {label: 'Home', href: '/'},
@@ -14,11 +18,14 @@ const navItems = [
  * @returns {JSX.Element} A navigation bar with links.
  */
 const NavItems = () => {
+    //figure out which page we are on
+    const pathname = usePathname();
     return (
         <nav className="flex items-center gap-4">
             {/* map over the navItems array and render a link for each item */}
             {navItems.map(({label, href}) => (
-                <Link href ={href} key={label}>
+                //make the current page bold in navbar
+                <Link href ={href} key={label} className = {cn(pathname === href && 'text-primary font-semibold')}>
                     {label}
                 </Link>
             ))}
