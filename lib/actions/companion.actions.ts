@@ -27,6 +27,16 @@ export const createCompanion = async(formData: CreateCompanion) => {
 
 //fetch companions to companion library pg action:
 
+/**
+ * Fetches a list of companions from the database.
+ * @param {GetAllCompanions} params - The parameters to filter the companions.
+ * @param {number} [params.limit=10] - The number of companions to fetch per page.
+ * @param {number} [params.page=1] - The page number to fetch.
+ * @param {string} [params.subject] - The subject to filter by.
+ * @param {string} [params.topic] - The topic to filter by.
+ * @returns {Promise<Companion[]>} A promise that resolves with an array of companions.
+ * @throws {Error} If the fetch fails.
+ */
 export const getAllCompanions = async({limit = 10, page = 1, subject, topic}: GetAllCompanions ) => {
     const supabase = createSupabaseClient(); // create supabase client (fetch from supabase)
 
