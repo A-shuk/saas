@@ -23,6 +23,8 @@ import {
   } from "@/components/ui/select"
 import { subjects } from "@/constants"
 import { Textarea } from "@/components/ui/textarea"
+import { createCompanion } from "@/lib/actions/companion.actions"
+import {redirect} from "next/navigation"
 
 
 // copied from shadcn: https://ui.shadcn.com/docs/forms/react-hook-form
@@ -53,8 +55,16 @@ const CompanionForm = () => {
         },
     })
     //submit form
-    const onSubmit = (values: z.infer<typeof formSchema>) => {
-        console.log(values)
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        
+        const companion = await createCompanion(values); //create companion
+        //check if companion is created then redirect to companion
+        if(companion) {
+            redirect('/companion/${companion.id}' ); //redirect to companion
+        } else {
+            console.log('Failed to create companion');
+            redirect('/'); //redirect to home pg
+        }
     }
 
     return (

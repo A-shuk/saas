@@ -11,7 +11,7 @@ export const createSupabaseClient = () => {
     //! shows that those keys are there
     return createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! , {
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY! , {
 /**
  * Returns an access token for the Supabase client.
  * This token is obtained by calling `getToken()` on the Clerk
@@ -20,8 +20,6 @@ export const createSupabaseClient = () => {
  */
             async accessToken() {
                 return ((await auth()).getToken());
-
-                
             }
         }
 
