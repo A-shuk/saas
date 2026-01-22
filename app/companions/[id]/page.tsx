@@ -3,6 +3,7 @@ import { currentUser } from '@clerk/nextjs/server';
 import {redirect} from "next/navigation"
 import { getSubjectColor } from '@/lib/utils';
 import Image from 'next/image';
+import CompanionComponent from '@/components/CompanionComponent';
 interface CompanionSessionPageProps {
   params: {id: string};
    
@@ -10,6 +11,15 @@ interface CompanionSessionPageProps {
 
   //search params /url?key=value&key1=value1
   //params /url/{id} -> id
+  
+/**
+ * A page component to display a single companion session.
+ * @param {CompanionSessionPageProps} props - The component props.
+ * @param {string} props.params.id - The ID of the companion to display.
+ * @throws {Error} If the user is not signed in.
+ * @throws {Error} If the companion is not found.
+ * @returns {JSX.Element} - A JSX element representing the page.
+ */
 const CompanionSession = async ({params}: CompanionSessionPageProps) => {
 
   const {id} = await params; //get id from params
@@ -58,6 +68,12 @@ const CompanionSession = async ({params}: CompanionSessionPageProps) => {
         </div>
 
       </article>
+      <CompanionComponent
+      {...companion}
+      companionId = {id}
+      userName = {user.firstName!}
+      userImage = {user.imageUrl!}
+      />
 
     </main>
   )
