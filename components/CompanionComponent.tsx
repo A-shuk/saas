@@ -11,6 +11,7 @@ import soundwaves from "@/constants/soundwaves.json";
 import { set } from "zod";
 import { Variable } from "lucide-react";
 import { CACHE_ONE_YEAR } from "next/dist/lib/constants";
+import { addToSessionHistory } from "@/lib/actions/companion.actions";
 // enum for call status
 enum CallStatus {
     INACTIVE = "INACTIVE",
@@ -58,7 +59,12 @@ const CompanionComponent = ({companionId, subject, topic, name, userName, userIm
         //vapi event handlers
 
         const onCallStart = () => setCallStatus(CallStatus.ACTIVE);
-        const onCallEnd = () => setCallStatus(CallStatus.FINISHED);
+        const onCallEnd = () => {
+
+         setCallStatus(CallStatus.FINISHED);
+         // add to session history
+         addToSessionHistory(companionId);
+        }
 
 /**
  * Handles a message from vapi.
