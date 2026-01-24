@@ -10,6 +10,7 @@ import { LottieRefCurrentProps } from 'lottie-react';
 import soundwaves from "@/constants/soundwaves.json";
 import { set } from "zod";
 import { Variable } from "lucide-react";
+import { CACHE_ONE_YEAR } from "next/dist/lib/constants";
 // enum for call status
 enum CallStatus {
     INACTIVE = "INACTIVE",
@@ -173,8 +174,9 @@ const CompanionComponent = ({companionId, subject, topic, name, userName, userIm
 
                     </div>
                     {/* UI for call buttons */}
+                    {/* toggle for mic icon */}
                    
-                    <button className="btn-mic" onClick={toggleMicrophone}>
+                    <button className="btn-mic" onClick={toggleMicrophone} disabled={callStatus != CallStatus.ACTIVE}>
                         {/* UI for mic icon */}
                         <Image src = {isMuted ? "/icons/mic-off.svg" : "/icons/mic-on.svg"} alt = "mic" width = {36} height = {36}/>
                         <p className="max-sm:hidden"> {isMuted ? "Unmute" : "Mute"}</p>
