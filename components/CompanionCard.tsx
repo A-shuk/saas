@@ -43,7 +43,7 @@ const CompanionCard = ({id, name, topic, subject, duration, color}: CompanionCar
                 <p className="text-sm">{duration} minutes </p>
              </div>
              {/* pass in launch lesson button through link*/}
-             <Link href = {'/compaions/${id}'} className = "w-full">
+             <Link href = {`/companions/${id}`} className = "w-full">
                 <button className="btn-primary w-full justify-center">Launch Lesson</button>
                 
              </Link>
