@@ -1,6 +1,6 @@
 'use client'
 
-import { getSubjectColor } from "@/lib/utils"
+import { configureAssistant, getSubjectColor } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import { useState, useEffect, useRef } from "react"
 import {vapi} from "@/lib/vapi.sdk";
@@ -9,6 +9,7 @@ import Lottie from "lottie-react";
 import { LottieRefCurrentProps } from 'lottie-react';
 import soundwaves from "@/constants/soundwaves.json";
 import { set } from "zod";
+import { Variable } from "lucide-react";
 // enum for call status
 enum CallStatus {
     INACTIVE = "INACTIVE",
@@ -36,6 +37,7 @@ const CompanionComponent = ({companionId, subject, topic, name, userName, userIm
     const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE); // default call status
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
+    const [messages, setMessages] = useState<SavedMessage[]>([]); // array of messages
      //lottie
      const lottieRef = useRef<LottieRefCurrentProps>(null);
 
@@ -56,7 +58,21 @@ const CompanionComponent = ({companionId, subject, topic, name, userName, userIm
 
         const onCallStart = () => setCallStatus(CallStatus.ACTIVE);
         const onCallEnd = () => setCallStatus(CallStatus.FINISHED);
-        const onMessage = () => {}
+
+/**
+ * Handles a message from vapi.
+ * If the message is a final transcript message, it adds the message to the array of messages.
+ * @param {Message} message - The message from vapi.
+ */
+        const onMessage = (message: Message) => {
+            if(message.type === 'transcript' && message.transcriptType === 'final') {
+                const newMessage = {role: message.role, content: message.transcript}
+                setMessages((prev) => [newMessage, ...prev]) // add message to array
+
+
+            }
+
+        }
         const onSpeachStart = () => setIsSpeaking(true);
         const onSpeechEnd = () => setIsSpeaking(false);
         const onError = (error:Error) => console.log(error);
@@ -96,11 +112,34 @@ const CompanionComponent = ({companionId, subject, topic, name, userName, userIm
         
     }
 
+    /**
+     * Handles the call to vapi and overrides the assistant.
+     * @returns {Promise<void>} - A promise that resolves when the call is finished.
+     */
     const handleCall = async () => {
+        setCallStatus(CallStatus.CONNECTING);
+        //overide assisant
+        const assistantOverrides = {
+            variableValues: {
+                subject, topic, style
+
+            },
+            clientMessages: ['transcript'],
+            serverMessages: [],
+        }
+        //@ts-expect-error
+        vapi.start(configureAssistant(voice, style), assistantOverrides);
         
     }
 
+    /**
+     * Handles disconnecting from a companion session.
+     * 
+     * Resets the call status to FINISHED and stops the vapi session.
+     */
     const handleDisconnect = () => {
+        setCallStatus(CallStatus.FINISHED);
+        vapi.stop();
         
     }
 
@@ -151,7 +190,36 @@ const CompanionComponent = ({companionId, subject, topic, name, userName, userIm
 
             </section>
             {/* UI for transcript section */}
-            
+            <section className="transcript">
+                <div className="transcript-message no-scrollbar">
+                    {messages.map((message) => {
+                        // if assistant is speaking, display message
+                        if (message.role == 'assistant') {
+                            return (
+                                <p key = {message.content} className="max-sm:text-sm">
+                                    {name.split(' ')[0].replace('/[.,]/g, ','')}: {message.content}
+                                </p>
+                            )
+                        }// if user is speaking
+                        else {
+                            return <p key={message.content} className="text-primary max-sm:text-sm">
+                                {userName}: {message.content}
+
+                            </p>
+                        }
+
+                    })}
+                
+                    
+
+                </div>
+                {/*transcript fades */}
+                 {/*transcript fade not working so commented out */}
+                
+                {/*<div className="transcript-fade"/> */}
+
+            </section>
+
         </section>
     )
 }
