@@ -75,6 +75,12 @@ export const getAllCompanions = async({limit = 10, page = 1, subject, topic}: Ge
 }
 
 
+/**
+ * Fetches a single companion from the database by its ID.
+ * @param {string} id - The ID of the companion to fetch.
+ * @returns {Promise<Companion | null>} A promise that resolves with the fetched companion or null if the fetch fails.
+ * @throws {Error} If the fetch fails.
+ */
 export const getCompanion = async(id:string) => {
   const supabase = createSupabaseClient(); // create supabase client (fetch from supabase)
   const {data, error} = await supabase.from('companions').select().eq('id', id).single(); //fetch data from db
@@ -84,5 +90,79 @@ export const getCompanion = async(id:string) => {
   if(error) {
     return console.log(error);
   }
+  return data;
+}
+
+/**
+ * Adds a companion to the session history.
+ * @param {string} companionId - The ID of the companion to add.
+ * @returns {Promise<SessionHistory>} A promise that resolves with the added session history.
+ * @throws {Error} If the addition fails.
+ */
+export const addToSessionHistory = async (companionId: string) => {
+  const {userId} = await auth(); // get user id from clerk
+  const supabase = createSupabaseClient(); // create supabase client (fetch from supabase)
+  const {data, error} = await supabase.from('session_history').insert({companion_id: companionId, user_id: userId}) //fetch data from db
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data;
+
+
+}
+
+/**
+ * Fetches the recent sessions from the database.
+ * @param {number} [limit=10] - The number of sessions to fetch.
+ * @returns {Promise<Companion[]>} A promise that resolves with an array of the recent sessions.
+ * @throws {Error} If the fetch fails.
+ */
+export const getRecentSessions = async (limit = 10) => {
+  const supabase = createSupabaseClient(); // create supabase client (fetch from supabase)
+  const {data, error} = await supabase.from('session_history').select(`companions:companion_id (*)`).order('created_at', {ascending:false}).limit(10) //fetch data from db
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data.map(({companions}) => companions);
+}
+
+
+
+/**
+ * Fetches the recent sessions of a user from the database.
+ * @param {string} userId - The ID of the user to fetch sessions for.
+ * @param {number} [limit=10] - The number of sessions to fetch.
+ * @returns {Promise<Companion[]>} A promise that resolves with an array of the recent sessions of the user.
+ * @throws {Error} If the fetch fails.
+ */
+export const getUserSessions = async (userId:string, limit = 10) => {
+  const supabase = createSupabaseClient(); // create supabase client (fetch from supabase)
+  const {data, error} = await supabase.from('session_history').select(`companions:companion_id (*)`).eq('user_id', userId).order('created_at', {ascending:false}).limit(10) //fetch data from db
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data.map(({companions}) => companions);
+}
+
+
+/**
+ * Fetches all the companions of a user from the database.
+ * @param {string} userId - The ID of the user to fetch companions for.
+ * @returns {Promise<Companion[]>} A promise that resolves with an array of the user's companions.
+ * @throws {Error} If the fetch fails.
+ */
+export const getUserCompanions = async (userId:string) => {
+  const supabase = createSupabaseClient(); // create supabase client (fetch from supabase)
+  const {data, error} = await supabase.from('companions').select().eq('author', userId) //fetch data from db
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
   return data;
 }
