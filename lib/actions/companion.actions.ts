@@ -148,3 +148,21 @@ export const getUserSessions = async (userId:string, limit = 10) => {
 
   return data.map(({companions}) => companions);
 }
+
+
+/**
+ * Fetches all the companions of a user from the database.
+ * @param {string} userId - The ID of the user to fetch companions for.
+ * @returns {Promise<Companion[]>} A promise that resolves with an array of the user's companions.
+ * @throws {Error} If the fetch fails.
+ */
+export const getUserCompanions = async (userId:string) => {
+  const supabase = createSupabaseClient(); // create supabase client (fetch from supabase)
+  const {data, error} = await supabase.from('companions').select().eq('author', userId) //fetch data from db
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
