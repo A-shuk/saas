@@ -30,6 +30,7 @@ export const getSubjectColor = (subject: string) => {
  * @returns {CreateAssistantDTO} - The configured assistant.
  */
 export const configureAssistant = (voice: string, style: string) => {
+  //id for voice (male, female, casual/formal)
   const voiceId = voices[voice as keyof typeof voices][
           style as keyof (typeof voices)[keyof typeof voices]
           ] || "sarah";
@@ -72,8 +73,8 @@ export const configureAssistant = (voice: string, style: string) => {
         },
       ],
     },
-    clientMessages: [],
-    serverMessages: [],
+    //clientMessages: [] ,
+    //serverMessages: [],
   };
   return vapiAssistant;
 };
