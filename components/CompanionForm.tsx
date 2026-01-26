@@ -60,7 +60,7 @@ const CompanionForm = () => {
         const companion = await createCompanion(values); //create companion
         //check if companion is created then redirect to companion
         if(companion) {
-            redirect('/companion/${companion.id}' ); //redirect to companion
+            redirect(`/companions/${companion.id}`); //redirect to companion
         } else {
             console.log('Failed to create companion');
             redirect('/'); //redirect to home pg
