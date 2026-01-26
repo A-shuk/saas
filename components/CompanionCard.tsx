@@ -1,4 +1,9 @@
+'use client'
+
+import { addBookmark, removeBoookmark } from "@/lib/actions/companion.actions"
+import Image from "next/image"
 import Link from "next/link"
+import { usePathname } from "next/navigation";
 // interface for CompanionCardProps on dashboard pg
 
 interface CompanionCardProps {
@@ -8,6 +13,7 @@ interface CompanionCardProps {
     subject: string
     duration: number
     color: string
+    bookmarked: boolean
 }
 
 /**
@@ -20,8 +26,26 @@ interface CompanionCardProps {
  * @param {string} props.subject - The subject of the companion.
  * @param {number} props.duration - The duration of the companion.
  * @param {string} props.color - The color of the companion.
+ * @param {boolean} props.bookmarked - Whether the companion is bookmarked.
  */
-const CompanionCard = ({id, name, topic, subject, duration, color}: CompanionCardProps) => {
+const CompanionCard = ({id, name, topic, subject, duration, color, bookmarked}: CompanionCardProps) => {
+    const pathname = usePathname();
+
+    /**
+     * Handles bookmarking/unbookmarking a companion.
+     * If the companion is currently bookmarked, it removes the bookmark.
+     * If the companion is not currently bookmarked, it adds a bookmark.
+     * @returns {Promise<void>} A promise that resolves when the bookmark is added or removed.
+     */
+    const handleBookmark = async() => {
+        if(bookmarked) {
+            await removeBoookmark(id, pathname); //remove bookmark
+        } else {
+            await addBookmark(id, pathname); //add bookmark
+        }
+    };
+
+
     //ui of the card (colour and style) through article
     return (
         <article className="companion-card" style = {{backgroundColor: color}}>
@@ -29,9 +53,9 @@ const CompanionCard = ({id, name, topic, subject, duration, color}: CompanionCar
             <div className="flex justify-between items-center">
                 <div className="subject-badge">{subject}</div>
                 {/* pass in bookmark icon through button*/}
-                <button className="companion-bookmark">
-                    <img src = "/icons/bookmark.svg" alt = "bookmark" width = {12.5} height = {15} />
-
+                <button className="companion-bookmark" onClick={handleBookmark}>
+                    <Image src = {bookmarked ? "/icons/bookmark-filled.svg" : "/icons/bookmark.svg"} alt = "bookmark" width = {12.5} height = {15} />
+                    
                 </button>
 
              </div>

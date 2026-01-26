@@ -30,29 +30,74 @@ Key files (search the repo for these names)
 Data tables (recommended)
 - companions
   - id: uuid (PK)
-  - user_id: uuid (Clerk user id)
-  - name: text
-  - description: text
-  - settings: jsonb
+  - name: varchar
+  - duration: int8
+  - voice : varchar
+  - style: varchar
+  - topic: varchar
+  - subject: varchar
+  - author: varchar
   - created_at, updated_at
+
+
+  
 - session_history
   - id: uuid
   - companion_id: uuid
-  - user_id: uuid
-  - input: text
-  - response: jsonb (or text)
+  - user_id: varchar
   - created_at
+
+- bookmarks
+  - user_id: varchar
+  - companion_id: uuid
+
+Foreign Keys:
+- Bookmarks: companion_id -> public.companions.id (CASCADE FOR ALL)
+- session_history: companion_id -> public.companions.id (CASCADE FOR ALL)
 
 Security & policies
 - Use Row Level Security (RLS) on Supabase tables:
   - companions: allow select/insert/update for owner `user_id = auth.uid()`
   - session_history: same pattern
-- Example policy snippet in Supabase SQL editor:
-```sql
-CREATE POLICY "allow_owner" ON companions
-  USING (auth.uid() = user_id);
-CREATE POLICY "allow_owner_insert" ON companions
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  Create 2 RLS policies for each table:
+  All:
+  alter policy "All"
+
+
+on "public"."companions"
+
+
+to anon
+
+
+using (
+
+7
+  true
+
+);
+Use select, anon, 
+
+Clerk:
+alter policy "Clerk"
+
+
+on "public"."companions"
+
+
+to authenticated
+
+using (
+
+  (( SELECT auth.jwt() AS jwt) IS NOT NULL)
+
+) with check (
+
+ (( SELECT auth.jwt() AS jwt) IS NOT NULL)
+
+);
+Authenticated, all
+
 ```
 
 Notes

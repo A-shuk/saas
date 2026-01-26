@@ -1,6 +1,7 @@
 'use server';
 import { auth } from '@clerk/nextjs/server';
 import { createSupabaseClient } from '../supabase';
+import { revalidatePath } from 'next/cache';
 
 /**
  * Creates a new learning companion with the given form data.
@@ -22,6 +23,8 @@ export const createCompanion = async(formData: CreateCompanion) => {
 
     }
 
+    
+
     return data[0];
 }
 
@@ -39,6 +42,7 @@ export const createCompanion = async(formData: CreateCompanion) => {
  */
 export const getAllCompanions = async({limit = 10, page = 1, subject, topic}: GetAllCompanions ) => {
     const supabase = createSupabaseClient(); // create supabase client (fetch from supabase)
+    const {userId} = await auth();
 
     let query = supabase.from('companions').select();
     // subject AND topic
@@ -68,6 +72,26 @@ export const getAllCompanions = async({limit = 10, page = 1, subject, topic}: Ge
     if (error || !companions) {
         throw new Error(error?.message || 'Failed to fetch companions');
     }
+    // Get an array of companion IDs
+  const companionIds = companions.map(({ id }) => id);
+
+  // Get the bookmarks where user_id is the current user and companion_id is in the array of companion IDs
+  const { data: bookmarks } = await supabase
+    .from("bookmarks")
+    .select()
+    .eq("user_id", userId)
+    .in("companion_id", companionIds); // Notice the in() function used to filter the bookmarks by array
+
+  const marks = new Set(bookmarks?.map(({ companion_id }) => companion_id));
+
+  // Add a bookmarked property to each companion
+  companions.forEach((companion) => {
+    companion.bookmarked = marks.has(companion.id);
+  });
+
+    
+
+
 
     return companions; //return companions
 
@@ -166,3 +190,118 @@ export const getUserCompanions = async (userId:string) => {
 
   return data;
 }
+
+/**
+ * Checks if a user has permission to create a new companion.
+ * @returns {Promise<boolean>} A promise that resolves with true if the user has permission to create a new companion, false otherwise.
+ * @throws {Error} If the check fails.
+ */
+export const newCompanionPermissions = async () => {
+  const {userId, has} = await auth();
+  const supabase = createSupabaseClient(); // create supabase client (fetch from supabase)
+  let limit = 0;
+
+  if (has({plan: 'pro'})) {
+    return true;
+
+  } else if(has({feature: "3_companion_limit"})) {
+    limit = 3;
+  } else if(has({feature: "10_companion_limit"})) {
+    limit = 10;
+  } 
+
+  const {data, error} = await supabase.from('companions').select('id', {count: 'exact'}).eq('author', userId) //fetch data from db
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  const companionCount = data.length;
+  
+  // if companion count is greater than or equal to limit, return false
+  if (companionCount >= limit) {
+    return false;
+  } else {
+    return true;
+  }
+
+}
+
+// Bookmarks
+
+/**
+ * Fetches the bookmarks of a user from the database.
+ * @param {string} userId - The ID of the user to fetch bookmarks for.
+ * @returns {Promise<Companion[]>} A promise that resolves with an array of the bookmarks of the user.
+ * @throws {Error} If the fetch fails.
+ */
+export const getUserBookmarks = async (userId:string) => {
+  const supabase = createSupabaseClient(); // create supabase client (fetch from supabase)
+  const {data, error} = await supabase.from('bookmarks').select(`companions:companion_id (*)`).eq('user_id', userId) //fetch data from db
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  // We don't need the bookmarks data, so we return only the companions
+
+  return data.map(({companions}) => companions);
+}
+
+
+/**
+ * Adds a bookmark to the database.
+ * @param {string} companionId - The ID of the companion to add a bookmark for.
+ * @param {string} path - The path of the page to revalidate after adding the bookmark.
+ * @returns {Promise<Companion>} A promise that resolves with the added bookmark.
+ * @throws {Error} If the add fails.
+ */
+export const addBookmark = async(companionId: string, path: string) => {
+  const {userId} = await auth(); // get user id from clerk
+
+  if (!userId) {
+    return;
+  }
+
+  const supabase = createSupabaseClient(); // create supabase client (fetch from supabase)
+  const {data, error} = await supabase.from('bookmarks').insert({companion_id: companionId, user_id: userId}); //fetch data from db
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath(path); //revalidate the path to force a re-render of the page
+  return data;
+
+  
+}
+
+/**
+ * Removes a bookmark from the database.
+ * @param {string} companionId - The ID of the companion to remove a bookmark for.
+ * @param {string} path - The path of the page to revalidate after removing the bookmark.
+ * @returns {Promise<Companion>} A promise that resolves with the removed bookmark.
+ * @throws {Error} If the remove fails.
+ */
+export const removeBoookmark = async(companionId: string, path: string) => {
+  const {userId} = await auth(); // get user id from clerk
+
+  if (!userId) {
+    return;
+  }
+
+  const supabase = createSupabaseClient(); // create supabase client (fetch from supabase)
+  const {data, error} = await supabase.from('bookmarks').delete().eq('companion_id', companionId).eq('user_id', userId); //fetch data from db
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath(path); //revalidate the path to force a re-render of the page
+  return data;
+  
+
+
+}
+  
+
+
