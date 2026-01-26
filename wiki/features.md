@@ -158,6 +158,19 @@ async function sendToAssistant(prompt) {
 }
 ```
 
+7) Bookmark feature (new)
+--------------------------
+Goal: Allow users to bookmark companions, view their bookmarked companions in "My Journey", and show bookmark state on Companion Cards.
+
+High-level flow:
+- Bookmarks are stored in a new `bookmarks` table (user_id, companion_id).
+- Server actions provide: getUserBookmarks(userId), addBookmark(userId, companionId), removeBookmark(userId, companionId).
+- getAllCompanions is updated to mark each companion with a `bookmarked: boolean` property for the current user.
+- UI:
+  - "My Journey" includes a new AccordionItem that renders bookmarked companions (uses existing CompanionsList/CompanionCard).
+  - CompanionCard reads `bookmarked` property and renders either `bookmark.svg` or `bookmark-filled.svg`.
+- Billing: Companion creation may be rate-limited by plan. When creating a new companion, the server checks the user's subscription (or companion count vs plan limit) and returns an upgrade prompt if the limit is exceeded.
+
 General recommendations
 - Validate user permissions server-side (do not rely on client).
 - Use Supabase RLS together with Clerk to ensure only owners can read/write companions / sessions.
