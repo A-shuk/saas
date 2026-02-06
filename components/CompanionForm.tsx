@@ -211,7 +211,7 @@ const CompanionForm = () => {
                     name="duration"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Estimated session duration in minutes</FormLabel>
+                            <FormLabel>Estimated session duration in minutes (Please leave time for 15mins for setup)</FormLabel>
                             <FormControl>
                                 <Input type = "number" placeholder="15 minutes" {...field} className="input" />
                             </FormControl>
